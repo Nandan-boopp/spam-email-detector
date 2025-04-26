@@ -5,31 +5,38 @@ import streamlit as st
 import pickle
 import string
 from nltk.corpus import stopwords
+import nltk
 from nltk.stem.porter import PorterStemmer
 
 ps = PorterStemmer()
 
-# Stopwords list is now fetched only once for better performance
-stop_words = set(stopwords.words('english'))
 
 def transform_text(text):
-    text = text.lower()  # Convert text to lowercase
-    text = text.split()  # Split text into words
+    text = text.lower()
+    text = nltk.word_tokenize(text)
 
-    # Remove non-alphanumeric characters
-    text = [word for word in text if word.isalnum()]
+    y = []
+    for i in text:
+        if i.isalnum():
+            y.append(i)
 
-    # Remove stopwords and punctuation
-    text = [word for word in text if word not in stop_words and word not in string.punctuation]
+    text = y[:]
+    y.clear()
 
-    # Apply stemming to the words
-    text = [ps.stem(word) for word in text]
+    for i in text:
+        if i not in stopwords.words('english') and i not in string.punctuation:
+            y.append(i)
 
-    return " ".join(text)
+    text = y[:]
+    y.clear()
 
-# Load pre-trained model and vectorizer
-tfidf = pickle.load(open('vectorizer.pkl', 'rb'))
-model = pickle.load(open('model.pkl', 'rb'))
+    for i in text:
+        y.append(ps.stem(i))
+
+    return " ".join(y)
+
+tfidf = pickle.load(open('vectorizer.pkl','rb'))
+model = pickle.load(open('model.pkl','rb'))
 
 st.title("Email/SMS Spam Classifier")
 
@@ -37,17 +44,13 @@ input_sms = st.text_area("Enter the message")
 
 if st.button('Predict'):
 
-    # Preprocess the input message
+    # 1. preprocess
     transformed_sms = transform_text(input_sms)
-    st.write("Transformed Text: ", transformed_sms)  # Display transformed text for debugging
-    
-    # Vectorize the transformed text
+    # 2. vectorize
     vector_input = tfidf.transform([transformed_sms])
-    
-    # Predict if the message is spam or not
+    # 3. predict
     result = model.predict(vector_input)[0]
-    
-    # Display the result
+    # 4. Display
     if result == 1:
         st.header("Spam")
     else:
