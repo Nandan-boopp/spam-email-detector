@@ -1,10 +1,12 @@
 import nltk
+# Download required NLTK resources at runtime
+nltk.download('stopwords')
+nltk.download('punkt')
 import streamlit as st
 import pickle
 import string
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
-
 # Comment out these downloads after first time
 # nltk.download('stopwords')
 # nltk.download('punkt')
